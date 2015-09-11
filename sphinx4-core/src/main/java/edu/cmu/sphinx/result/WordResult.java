@@ -9,8 +9,12 @@
 
 package edu.cmu.sphinx.result;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
+import edu.cmu.sphinx.decoder.search.Token;
 import edu.cmu.sphinx.linguist.dictionary.Pronunciation;
 import edu.cmu.sphinx.linguist.dictionary.Word;
 import edu.cmu.sphinx.util.LogMath;
@@ -28,6 +32,7 @@ public class WordResult {
     private final TimeFrame timeFrame;
     private final double score;
     private final double confidence;
+    private final List<Token> tokens = new ArrayList<Token>();
 
     /**
      * Construct a word result with full information.
@@ -117,5 +122,22 @@ public class WordResult {
     @Override
     public String toString() {
         return String.format(Locale.US, "{%s, %.3f, [%s]}", word, LogMath.getLogMath().logToLinear((float)getConfidence()), timeFrame);
+    }
+
+    public void collectTokens(Token token) {
+        if (token != null) {
+            tokens.clear();
+            tokens.add(token);
+            Token curr = token.getPredecessor();
+            while (curr != null && !curr.isWord()) {
+                tokens.add(curr);
+                curr = curr.getPredecessor();
+            }
+            Collections.reverse(tokens);
+        }
+    }
+
+    public List<Token> getTokens() {
+        return tokens;
     }
 }

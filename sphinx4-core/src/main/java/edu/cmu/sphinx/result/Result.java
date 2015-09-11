@@ -432,8 +432,8 @@ public class Result {
         long prevWordEnd = -1;
         List<WordResult> result = new ArrayList<WordResult>();
 
+        Token previousToken = null;
         while (token != null) {
-
             if (prevWordEnd < 0)
                 prevWordEnd = token.getCollectTime();
 
@@ -441,8 +441,13 @@ public class Result {
                 Word word = token.getWord();
                 if (withFillers || !word.isFiller()) {
                     TimeFrame timeFrame = new TimeFrame(token.getCollectTime(), prevWordEnd);
-                    result.add(new WordResult(word, timeFrame, token.getScore(), 1.));
+                    WordResult wr = new WordResult(word, timeFrame, token.getScore(), 1.);
+                    if (previousToken != null) {
+                        wr.collectTokens(previousToken);
+                    }
+                    result.add(wr);
                 }
+                previousToken = token;
                 prevWordEnd = token.getCollectTime();
             }
             token = token.getPredecessor();
@@ -465,14 +470,20 @@ public class Result {
         Word word = null;
 
         List<WordResult> result = new ArrayList<WordResult>();
+        Token previousToken = null;
         while (token != null) {
             if (token.isWord()) {
                 if (word != null && lastWordEnd >= 0) {
                     if (withFillers || !word.isFiller()) {
                         TimeFrame timeFrame = new TimeFrame(lastWordStart, lastWordEnd);
-                        result.add(new WordResult(word, timeFrame, token.getScore(), 1.));
+                        WordResult wr = new WordResult(word, timeFrame, token.getScore(), 1.);
+                        if (previousToken != null) {
+                            wr.collectTokens(previousToken);
+                        }
+                        result.add(wr);
                     }
                 }
+                previousToken = token;
                 lastWordEnd = token.getCollectTime();
                 word = token.getWord();
             }
