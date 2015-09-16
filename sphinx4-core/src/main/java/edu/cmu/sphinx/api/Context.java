@@ -31,6 +31,13 @@ import edu.cmu.sphinx.util.props.ConfigurationManager;
  * Helps to tweak configuration without touching XML-file directly.
  */
 public class Context {
+    private static String customConfig;
+    private static final String defaultConfig =
+        "resource:/edu/cmu/sphinx/api/default.config.xml";
+
+    public static void setCustomConfig(String config) {
+        Context.customConfig = config;
+    }
 
     private final ConfigurationManager configurationManager;
 
@@ -42,7 +49,7 @@ public class Context {
     public Context(Configuration config)
         throws IOException, MalformedURLException
     {
-        this("resource:/edu/cmu/sphinx/api/default.config.xml", config);
+        this((Context.customConfig == null) ? defaultConfig : customConfig, config);
     }
 
     /**
@@ -223,5 +230,14 @@ public class Context {
      */
     public Loader getLoader(){
     	return (Loader) configurationManager.lookup("acousticModelLoader");
+    }
+
+    /**
+     * Gets the context's configuration manager.
+     * 
+     * @return configuration manager
+     */
+    public ConfigurationManager getConfigurationManager() {
+        return configurationManager;
     }
 }

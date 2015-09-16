@@ -33,6 +33,7 @@ public class WordResult {
     private final double score;
     private final double confidence;
     private final List<Token> tokens = new ArrayList<Token>();
+    private float logAverageScore;
 
     /**
      * Construct a word result with full information.
@@ -125,16 +126,29 @@ public class WordResult {
     }
 
     public void collectTokens(Token token) {
+        float total = LogMath.LOG_ZERO;
         if (token != null) {
             tokens.clear();
-            tokens.add(token);
+            if (token.isEmitting()) tokens.add(token);
+            total = LogMath.getLogMath().addAsLinear(total, token.getAcousticScore());
+
             Token curr = token.getPredecessor();
             while (curr != null && !curr.isWord()) {
-                tokens.add(curr);
+                if (curr.isEmitting()) {
+                    total = LogMath.getLogMath().addAsLinear(total, curr.getAcousticScore());
+                    tokens.add(curr);
+                }
                 curr = curr.getPredecessor();
             }
             Collections.reverse(tokens);
+
+            double averageScore = LogMath.getLogMath().logToLinear(total) / tokens.size();
+            this.logAverageScore = LogMath.getLogMath().linearToLog(averageScore);
         }
+    }
+
+    public float getLogAverageScore() {
+        return logAverageScore;
     }
 
     public List<Token> getTokens() {

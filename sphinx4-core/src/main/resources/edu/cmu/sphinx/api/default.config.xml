@@ -32,7 +32,7 @@
   </component>
 
   <component name="decoder" type="edu.cmu.sphinx.decoder.Decoder">
-    <property name="searchManager" value="wordPruningLookaheadSearchManager"/>
+    <property name="searchManager" value="wordPruningSearchManager"/>
   </component>
 
   <component name="alignerSearchManager"
@@ -134,9 +134,15 @@
   <component name="trivialPruner"
     type="edu.cmu.sphinx.decoder.pruner.SimplePruner"/>
 
+  <component name="nullPruner"
+    type="edu.cmu.sphinx.decoder.pruner.NullPruner"/>
+
   <component name="trivialScorer"
-    type="edu.cmu.sphinx.decoder.scorer.SimpleAcousticScorer">
+    type="edu.cmu.sphinx.decoder.scorer.ThreadedAcousticScorer">
     <property name="frontend" value="liveFrontEnd"/>
+    <property name="numThreads" value="4"/>
+    <property name="isCpuRelative" value="false"/>
+    <property name="threadPriority" value="10"/>
   </component>
 
   <component name="alignerLinguist"
@@ -274,7 +280,7 @@
       <item>windower </item>
       <item>fft </item>
       <item>autoCepstrum </item>
-      <item>liveCMN </item>
+      <item>batchCMN </item>
       <item>featureExtraction </item>
       <item>featureTransform </item>
     </propertylist>
