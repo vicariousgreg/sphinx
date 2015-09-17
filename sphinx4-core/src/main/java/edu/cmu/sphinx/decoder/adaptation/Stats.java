@@ -1,5 +1,7 @@
 package edu.cmu.sphinx.decoder.adaptation;
 
+import java.util.List;
+
 import edu.cmu.sphinx.api.SpeechResult;
 import edu.cmu.sphinx.decoder.search.Token;
 import edu.cmu.sphinx.frontend.FloatData;
@@ -118,6 +120,80 @@ public class Stats {
 
         return posteriors;
     }
+
+    /**
+     * Collects counts directly from features and mixture IDs.
+     * The counts are collected and stored separately for each cluster.
+     * 
+     * @param features
+     *            list of FloatData features
+     * @param mixtureIds
+     *            list of corresponding mixture IDs
+     * @throws Exception
+     *             if something went wrong
+     */
+    public void collect(List<FloatData> features, List<Integer> mixtureIds) throws Exception {
+        if (features.size() != mixtureIds.size()) {
+            throw new RuntimeException("Feature and mixture ID lists are not equal!");
+        }
+
+        float[] componentScore, featureVector, posteriors, tmean;
+        int[] len;
+        float dnom, wtMeanVar, wtDcountVar, wtDcountVarMean, mean;
+        int mId, cluster;
+        int numStreams, gauPerState;
+
+        for (int index = 0; index < features.size(); ++index) {
+            FloatData feature = features.get(index);
+            featureVector = feature.getValues();
+            mId = mixtureIds.get(index);
+            nFrames++;
+
+            if (loader instanceof Sphinx3Loader && ((Sphinx3Loader) loader).hasTiedMixtures())
+                // use CI phone ID for tied mixture model
+                mId = ((Sphinx3Loader) loader).getSenone2Ci()[mId];
+            componentScore = loader.getSenonePool().get(mId).calculateComponentScore(feature);
+
+            len = loader.getVectorLength();
+            numStreams = loader.getNumStreams();
+            gauPerState = loader.getNumGaussiansPerState();
+            posteriors = this.computePosterios(componentScore, numStreams);
+            int featVectorStartIdx = 0;
+
+            for (int i = 0; i < numStreams; i++) {
+                for (int j = 0; j < gauPerState; j++) {
+
+                    cluster = means.getClassIndex(mId * numStreams * gauPerState + i * gauPerState + j);
+                    dnom = posteriors[i * gauPerState + j];
+                    if (dnom > 0.) {
+                        tmean = loader.getMeansPool().get(mId * numStreams * gauPerState + i * gauPerState + j);
+
+                        for (int k = 0; k < len[i]; k++) {
+                            mean = posteriors[i * gauPerState + j] * featureVector[k + featVectorStartIdx];
+                            wtMeanVar = mean
+                                    * loader.getVariancePool().get(mId * numStreams * gauPerState + i * gauPerState + j)[k];
+                            wtDcountVar = dnom
+                                    * loader.getVariancePool().get(mId * numStreams * gauPerState + i * gauPerState + j)[k];
+
+                            for (int p = 0; p < len[i]; p++) {
+                                wtDcountVarMean = wtDcountVar * tmean[p];
+
+                                for (int q = p; q < len[i]; q++) {
+                                    regLs[cluster][i][k][p][q] += wtDcountVarMean * tmean[q];
+                                }
+                                regLs[cluster][i][k][p][len[i]] += wtDcountVarMean;
+                                regRs[cluster][i][k][p] += wtMeanVar * tmean[p];
+                            }
+                            regLs[cluster][i][k][len[i]][len[i]] += wtDcountVar;
+                            regRs[cluster][i][k][len[i]] += wtMeanVar;
+                        }
+                    }
+                }
+                featVectorStartIdx += len[i];
+            }
+        }
+    }
+
 
     /**
      * This method is used for directly collect and use counts. The counts are
