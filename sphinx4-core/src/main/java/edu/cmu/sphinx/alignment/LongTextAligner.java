@@ -286,7 +286,7 @@ public class LongTextAligner {
         
         Iterator<String> it = words.iterator();
         for (int i = 0; i < tupleSize - 1; i++) {
-            tuple.add(it.next());
+            if (it.hasNext()) tuple.add(it.next());
         }
         while (it.hasNext()) {
             tuple.addLast(it.next());
