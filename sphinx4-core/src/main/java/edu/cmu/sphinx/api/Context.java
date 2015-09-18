@@ -172,8 +172,9 @@ public class Context {
 
     public void setSpeechSource(InputStream stream, TimeFrame timeFrame) {
         getInstance(StreamDataSource.class).setInputStream(stream, timeFrame);
-        setLocalProperty("trivialScorer->frontend", "liveFrontEnd");
-        ((FrontEnd) configurationManager.lookup("liveFrontEnd")).initialize();
+        //setLocalProperty("trivialScorer->frontend", "liveFrontEnd");
+        //((FrontEnd) configurationManager.lookup("liveFrontEnd")).initialize();
+        getInstance(FrontEnd.class).initialize();
     }
 
     /**
@@ -183,8 +184,9 @@ public class Context {
      */
     public void setSpeechSource(InputStream stream) {
         getInstance(StreamDataSource.class).setInputStream(stream);
-        setLocalProperty("trivialScorer->frontend", "liveFrontEnd");
-        ((FrontEnd) configurationManager.lookup("liveFrontEnd")).initialize();
+        //setLocalProperty("trivialScorer->frontend", "liveFrontEnd");
+        //((FrontEnd) configurationManager.lookup("liveFrontEnd")).initialize();
+        getInstance(FrontEnd.class).initialize();
     }
 
     /**

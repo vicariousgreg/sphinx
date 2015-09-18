@@ -340,6 +340,13 @@ public class USEnglishTokenizer implements TextTokenizer {
         }
     };
 
+    // Custom words map
+    private static Map<String, String[]> customWords = new HashMap<String, String[]>();
+    static {
+        customWords.put("AB", new String[]{"a", "b"});
+    };
+
+
     // class variables
 
     // the word relation that we are building
@@ -476,7 +483,11 @@ public class USEnglishTokenizer implements TextTokenizer {
         String itemName = tokenFeatures.getString("name");
         int tokenLength = tokenVal.length();
 
-        if (tokenFeatures.isPresent("phones")) {
+        // Check custom words map.
+        if (customWords.get(tokenVal) != null) {
+            for (String s : customWords.get(tokenVal))
+                wordRelation.addWord(s);
+        } else if (tokenFeatures.isPresent("phones")) {
             wordRelation.addWord(tokenVal);
 
         } else if ((tokenVal.equals("a") || tokenVal.equals("A"))
