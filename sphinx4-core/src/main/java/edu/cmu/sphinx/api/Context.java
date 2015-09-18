@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 
 import edu.cmu.sphinx.frontend.frequencywarp.MelFrequencyFilterBank2;
+import edu.cmu.sphinx.frontend.FrontEnd;
 import edu.cmu.sphinx.frontend.util.StreamDataSource;
 import edu.cmu.sphinx.linguist.acoustic.tiedstate.Loader;
 import edu.cmu.sphinx.util.TimeFrame;
@@ -172,6 +173,7 @@ public class Context {
     public void setSpeechSource(InputStream stream, TimeFrame timeFrame) {
         getInstance(StreamDataSource.class).setInputStream(stream, timeFrame);
         setLocalProperty("trivialScorer->frontend", "liveFrontEnd");
+        ((FrontEnd) configurationManager.lookup("liveFrontEnd")).initialize();
     }
 
     /**
@@ -182,6 +184,7 @@ public class Context {
     public void setSpeechSource(InputStream stream) {
         getInstance(StreamDataSource.class).setInputStream(stream);
         setLocalProperty("trivialScorer->frontend", "liveFrontEnd");
+        ((FrontEnd) configurationManager.lookup("liveFrontEnd")).initialize();
     }
 
     /**
